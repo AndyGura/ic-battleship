@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IC Battleship</title>
+    <meta name="description" content="Classic 10x10 Battleship in epic 3D with fire, smoke and a stormy shader sea: deploy your fleet against the clock and sink the enemy admiral, in the browser, on the Internet Computer." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="IC Battleship" />
+    <meta property="og:description" content="Classic 10x10 Battleship in epic 3D with fire, smoke and a stormy shader sea: deploy your fleet against the clock and sink the enemy admiral, in the browser, on the Internet Computer." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#04080c" />
+    <link rel="stylesheet" href="/duel-game-core.css" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-title">
+        <h1>IC Battleship</h1>
+        <a class="more-games" href="https://games.ic0.info/" target="_blank" rel="noopener">More games ↗</a>
+      </div>
+      <div class="session">
+        <!-- LEADERBOARD:
+        <button id="leaderboard-toggle" title="Leaderboard" aria-label="Leaderboard">🏆</button>
+        -->
+        <span class="label">Session</span>
+        <code id="sid">…</code>
+        <button id="new-sid" title="Play as a different session">new</button>
+      </div>
+    </header>
+
+    <!-- LEADERBOARD:
+    <div id="leaderboard-panel" hidden>
+      <div class="leaderboard-header">
+        <button id="leaderboard-back" class="ghost">← Back</button>
+        <h2>🏆 Top players</h2>
+      </div>
+      <div id="leaderboard-body" class="leaderboard-list"></div>
+    </div>
+    -->
+
+    <!-- BOTS:
+    <div id="bot-challenge-panel" hidden>
+      <div class="bot-challenge-header">
+        <button id="bot-challenge-back" class="ghost">← Back</button>
+        <h2>🤖 Bots</h2>
+      </div>
+      <div id="bot-challenge-body" class="bot-challenge-body"></div>
+    </div>
+    -->
+
+    <p id="error" class="error" hidden></p>
+
+    <main id="screen">
+      <p class="muted">Connecting…</p>
+    </main>
+
+    <!-- BOTS:
+    <div id="bot-add-panel" hidden>
+      <button id="bot-add-trigger" class="ghost">Add Bot 🤖 to the open seat</button>
+    </div>
+    -->
+
+    <footer>
+      <p class="muted">
+        Your session id is per browser tab — open a second tab to play the
+        other seat. You get 45&nbsp;seconds to deploy your fleet; an idle game
+        can be taken over after 90&nbsp;seconds.
+      </p>
+    </footer>
+
+    <!-- esbuild's bundle of src/app.js (see ../build.js). -->
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

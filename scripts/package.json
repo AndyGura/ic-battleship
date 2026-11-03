@@ -1,0 +1,9 @@
+{
+  "name": "ic-battleship-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Local-replica fallback for sessions where icp-cli's network launcher cannot be downloaded.",
+  "dependencies": {
+    "@dfinity/pic": "*"
+  }
+}

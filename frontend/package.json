@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@icp-sdk/core": "^6.1.0",
-    "@research-ag/duel-game-core": "0.4.1"
+    "@research-ag/duel-game-core": "0.4.1",
+    "three": "0.187.0"
   },
   "devDependencies": {
     "esbuild": "^0.28.0"

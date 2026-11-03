@@ -1,0 +1,575 @@
+/* IC Battleship — a naval-bridge skin over duel-game-core.css. The 3D
+ * canvas (#battlefield) is fixed behind everything; every layout wrapper
+ * here lets clicks fall through to it and only the controls catch them. */
+
+:root {
+  --bg: #04080c;
+  --panel: rgba(7, 15, 23, 0.78);
+  --panel-2: rgba(22, 36, 50, 0.82);
+  --line: rgba(217, 165, 72, 0.3);
+  --ink: #f2e9d3;
+  --muted: #9fb0bd;
+  --accent: #e0aa4a;
+  --red: #ff6b5e;
+  --green: #6fe3a0;
+  --blue: #6ec6ff;
+  --serif: "Copperplate", "Copperplate Gothic Light", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+}
+
+html,
+body {
+  background: #04080c;
+}
+body {
+  min-height: 100vh;
+  padding: 0;
+  overflow-x: hidden;
+}
+/* storm vignette over the canvas */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+header,
+main,
+footer,
+#error {
+  position: relative;
+  z-index: 3;
+}
+header {
+  max-width: none;
+  margin: 0;
+  padding: 0.9rem 1.4rem 2.2rem;
+  border-bottom: 0;
+  background: linear-gradient(rgba(2, 6, 10, 0.78), transparent);
+  pointer-events: none;
+}
+header > *,
+header button,
+header a {
+  pointer-events: auto;
+}
+.header-title {
+  flex: 1 1 auto;
+}
+.session {
+  flex: 0 1 auto;
+}
+h1 {
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(224, 170, 74, 0.55), 0 2px 0 #000;
+}
+.more-games {
+  margin-left: 1.5rem;
+}
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  pointer-events: none;
+}
+main > * {
+  pointer-events: auto;
+}
+
+/* lobby, staging, rematch, debrief: a glassy bridge panel */
+body[data-screen="menu"] main,
+body[data-screen="debrief"] main {
+  margin: 1rem auto 3rem;
+  padding: 1.4rem 1.6rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  backdrop-filter: blur(9px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  pointer-events: auto;
+}
+body[data-screen="debrief"] main {
+  margin-top: 26vh;
+  max-width: 560px;
+}
+body[data-screen="menu"] footer {
+  max-width: 880px;
+  margin: 0 auto 2rem;
+  border-top: 0;
+  text-align: center;
+  text-shadow: 0 1px 4px #000;
+}
+body[data-screen="game"] footer,
+body[data-screen="debrief"] footer {
+  display: none;
+}
+
+h2 {
+  font-family: var(--serif);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+button {
+  background: var(--panel-2);
+  border-color: var(--line);
+  border-radius: 8px;
+}
+button:hover:not(:disabled) {
+  background: rgba(46, 66, 86, 0.9);
+}
+button.primary {
+  background: linear-gradient(#c58d2f, #8f5f17);
+  border-color: #f0c26a;
+  color: #fff7e2;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(#dba03c, #a56d1c);
+}
+.verdict {
+  font-family: var(--serif);
+  font-size: 1.7rem;
+}
+
+/* ── in-game: the engine's chrome shrinks to a corner panel ─────────── */
+body[data-screen="game"] main {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  width: min(290px, calc(100vw - 24px));
+  margin: 0;
+  padding: 0.8rem 0.95rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  font-size: 0.8rem;
+  pointer-events: auto;
+}
+body[data-screen="game"] .turnbar,
+body[data-screen="game"] .actions,
+body[data-screen="game"] .waiting,
+body[data-screen="game"] .table-badge {
+  display: none;
+}
+body[data-screen="game"] .board {
+  margin-bottom: 0.5rem;
+}
+.tally {
+  display: grid;
+  gap: 0.15rem;
+  color: var(--muted);
+}
+.tally b {
+  color: var(--ink);
+}
+body[data-screen="game"] main p {
+  margin: 0.35rem 0;
+}
+/* on a phone the corner panel gives way to the HUD */
+@media (max-width: 720px) {
+  header {
+    padding: 0.5rem 0.8rem 1.4rem;
+  }
+  h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+  }
+  .session .label,
+  #sid {
+    display: none;
+  }
+  body[data-screen="game"] main {
+    right: 8px;
+    bottom: auto;
+    top: 46px;
+    width: auto;
+    max-width: 190px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+  body[data-screen="game"] main .tally span:nth-child(3),
+  body[data-screen="game"] main .countdown:empty {
+    display: none;
+  }
+  body[data-screen="menu"] main,
+  body[data-screen="debrief"] main {
+    margin: 0.5rem 10px 2rem;
+    padding: 1rem;
+  }
+}
+
+/* ── the HUD ──────────────────────────────────────────────────────────── */
+#hud {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  font-family: var(--serif);
+}
+#hud[hidden] {
+  display: none;
+}
+#hud button {
+  pointer-events: auto;
+}
+
+.hud-banner {
+  position: absolute;
+  top: 54px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  text-shadow: 0 2px 10px #000, 0 0 24px rgba(0, 0, 0, 0.8);
+  width: min(560px, 92vw);
+}
+.b-title {
+  font-size: clamp(1.1rem, 3.4vw, 1.9rem);
+  letter-spacing: 0.28em;
+  color: var(--ink);
+  font-weight: 700;
+}
+.b-sub {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+}
+.hud-banner.fire .b-title {
+  color: #ff9a5e;
+}
+.hud-banner.enemy .b-title {
+  color: #ff6b5e;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.hud-banner.deploy .b-title,
+.hud-banner.wait .b-title {
+  color: var(--accent);
+}
+.hud-banner.victory .b-title {
+  color: var(--green);
+  font-size: clamp(2rem, 7vw, 3.6rem);
+  animation: rise 1.2s ease-out both;
+}
+.hud-banner.defeat .b-title {
+  color: var(--red);
+  font-size: clamp(2rem, 7vw, 3.6rem);
+  animation: rise 1.2s ease-out both;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: scale(1.4);
+    letter-spacing: 0.7em;
+  }
+}
+
+.hud-fleets {
+  position: absolute;
+  left: 12px;
+  top: 58px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fleet {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  backdrop-filter: blur(6px);
+  min-width: 150px;
+}
+.fleet h4 {
+  margin: 0 0 0.3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.fleet.enemy h4 {
+  color: #ff8a78;
+}
+.fleet ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font: 0.72rem/1.55 system-ui, sans-serif;
+  color: var(--ink);
+}
+.fleet li .pips {
+  display: inline-block;
+  width: 3.6em;
+  letter-spacing: -0.12em;
+  color: #7fb3d6;
+  font-size: 0.7rem;
+}
+.fleet.enemy li .pips {
+  color: #d9776a;
+}
+.fleet li.sunk {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.fleet li.sunk .pips {
+  color: #555;
+}
+
+.hud-tools {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+.hud-tools button {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.78rem;
+  font-family: system-ui, sans-serif;
+  backdrop-filter: blur(6px);
+}
+
+.hud-tray {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translate(-50%, 140%);
+  opacity: 0;
+  transition: transform 0.45s ease, opacity 0.45s;
+  width: min(640px, calc(100vw - 24px));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.7rem 0.9rem 0.8rem;
+  backdrop-filter: blur(9px);
+  pointer-events: none;
+}
+.hud-tray.show {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.tray-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+.tray-timer {
+  font: 700 1.1rem system-ui, sans-serif;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+.hud-tray.urgent .tray-timer {
+  color: var(--red);
+  animation: pulse 0.8s infinite;
+}
+.timerbar {
+  height: 4px;
+  margin: 0.35rem 0 0.6rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.timerbar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #d9a548, #ff8a3c);
+  transition: width 0.25s linear;
+}
+.hud-tray.urgent .timerbar i {
+  background: #ff4a3a;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.2rem;
+  font-size: 0.7rem;
+  font-family: system-ui, sans-serif;
+}
+.card b {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.card .pips {
+  color: #7fb3d6;
+  letter-spacing: -0.1em;
+  font-size: 0.75rem;
+}
+.card.selected {
+  border-color: #59d8ff;
+  box-shadow: 0 0 14px rgba(89, 216, 255, 0.45);
+}
+.card.placed {
+  opacity: 0.6;
+}
+.card i {
+  position: absolute;
+  top: 1px;
+  right: 5px;
+  color: var(--green);
+  font-style: normal;
+}
+.tray-buttons {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tray-buttons button {
+  flex: 1 1 auto;
+  font-size: 0.82rem;
+}
+.tray-buttons button.primary {
+  flex: 2 1 auto;
+}
+
+.hud-fire {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: none;
+}
+.hud-fire.show {
+  display: block;
+}
+.hud-fire button {
+  font-size: 1.1rem;
+  padding: 0.8rem 2rem;
+}
+
+.hud-log {
+  position: absolute;
+  left: 12px;
+  bottom: 56px;
+  width: min(260px, 60vw);
+  font: 0.72rem/1.5 system-ui, sans-serif;
+  color: var(--muted);
+  text-shadow: 0 1px 4px #000;
+  display: flex;
+  flex-direction: column;
+}
+.hud-log .good {
+  color: var(--green);
+}
+.hud-log .bad {
+  color: #ff8a78;
+}
+.hud-log > div {
+  opacity: 0.9;
+}
+.hud-log > div:nth-child(n + 3) {
+  opacity: 0.5;
+}
+
+.hud-toast {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  transform: translate(-50%, -50%) scale(0.8);
+  font-size: clamp(1.6rem, 6vw, 3.4rem);
+  letter-spacing: 0.22em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--ink);
+  text-shadow: 0 0 22px rgba(0, 0, 0, 0.9), 0 3px 0 rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  pointer-events: none;
+}
+.hud-toast.show {
+  animation: toast 2.2s ease-out both;
+}
+.hud-toast.good {
+  color: #ffc15e;
+}
+.hud-toast.bad {
+  color: #ff7a66;
+}
+@keyframes toast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -62%) scale(0.98);
+  }
+}
+
+@media (max-width: 720px) {
+  .hud-fleets {
+    top: 84px;
+    flex-direction: row;
+    gap: 4px;
+  }
+  .fleet {
+    min-width: 0;
+    padding: 0.3rem 0.45rem;
+  }
+  .fleet li {
+    font-size: 0.6rem;
+    line-height: 1.35;
+  }
+  .fleet li .pips {
+    width: 2.6em;
+  }
+  .hud-banner {
+    top: 40px;
+  }
+  .hud-log {
+    display: none;
+  }
+  .hud-tools {
+    bottom: auto;
+    top: 8px;
+    right: 8px;
+    left: auto;
+  }
+  .hud-tools button {
+    font-size: 0;
+    padding: 0.35rem 0.5rem;
+  }
+  .hud-tools button::first-letter {
+    font-size: 1rem;
+  }
+  .cards {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .card b {
+    font-size: 0.58rem;
+  }
+}
