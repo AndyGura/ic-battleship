@@ -541,7 +541,8 @@ body[data-screen="game"] main p {
     white-space: nowrap;
   }
   .fleet li .pips {
-    width: 2.8em;
+    width: 3.9em;
+    font-size: 0.6rem;
   }
   .hud-log {
     display: none;
