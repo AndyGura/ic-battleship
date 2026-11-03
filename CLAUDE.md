@@ -8,10 +8,17 @@ for a change to the live game, its `references/changing-a-live-game.md`.
 
 ## Live
 
-**Nothing is deployed yet.** hosty.live's MCP server did not connect in the session
-that built this (`.mcp.json` is in place; see the README, "Canisters"). When canisters
-exist, list them here: backend, frontend, and whether each is the live game (mainnet)
-or a free cloud engine test copy that hosty.live may delete.
+**Not live yet; test copies only.** Free hosty.live cloud engine canisters (hosty.live may
+delete them; the Duel dashboard will not list them):
+
+| Canister | Id | Runs |
+| -------- | -- | ---- |
+| backend  | `hw4b5-haaaa-aaacl-aaaea-cai` | test copy |
+| frontend | `hr5hj-kyaaa-aaacl-aaaeq-cai` | https://hr5hj-kyaaa-aaacl-aaaeq-cai.icp0.io/ (test copy) |
+
+If hosty.live deletes one, recreate it on the cloud engine (not mainnet), reinstall/upload, and
+point the page's `PUBLIC_CANISTER_ID:backend` at the backend. Mainnet canisters are bought only
+when the owner says the game goes live.
 
 ## What the game runs
 

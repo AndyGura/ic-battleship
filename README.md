@@ -91,11 +91,16 @@ The steps, with the exact tool calls, are in
 
 ## Canisters
 
-**Not deployed yet.** The session that built this game could not reach hosty.live
-(its MCP server failed to register), so no canister exists. Once they do, they go here,
-marked as live (mainnet) or test (cloud engine copy that hosty.live may delete):
+**Free test copies on hosty.live's cloud engine. Not the live game:** hosty.live may delete
+them at its discretion, and the Duel dashboard will not list a game that runs on them.
 
 | Canister | Id | Network |
 | --- | --- | --- |
-| backend | — | — |
-| frontend | — | — |
+| backend | `hw4b5-haaaa-aaacl-aaaea-cai` | cloud engine (test) |
+| frontend | `hr5hj-kyaaa-aaacl-aaaeq-cai` | cloud engine (test) |
+
+Play: https://hr5hj-kyaaa-aaacl-aaaeq-cai.icp0.io/
+
+Every change goes back into these canisters (backend upgrade with `snapshotBeforeUpgrade`,
+page upload with `PUBLIC_CANISTER_ID:backend` set to the backend id). When the game goes
+live, mainnet canisters are bought and their ids replace these and are marked as live.
