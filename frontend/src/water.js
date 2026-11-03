@@ -62,7 +62,7 @@ vec3 skyBase(vec3 d){
   float sunAmt = max(dot(d, uSunDir), 0.0);
   vec3 zenith = vec3(0.012, 0.03, 0.07);
   vec3 mid = vec3(0.12, 0.13, 0.2);
-  vec3 horizon = vec3(0.55, 0.26, 0.17);
+  vec3 horizon = vec3(0.42, 0.19, 0.12);
   vec3 col = mix(horizon, mid, smoothstep(0.0, 0.22, e));
   col = mix(col, zenith, smoothstep(0.15, 0.85, e));
   col += vec3(1.0, 0.42, 0.14) * pow(sunAmt, 6.0) * 0.55;
@@ -172,25 +172,25 @@ export function makeSea() {
       vec2 q = vWorld.xz;
       float n1 = fbm(q * 1.7 + vec2(uTime * 0.25, uTime * 0.18));
       float n2 = fbm(q * 3.9 - vec2(uTime * 0.31, uTime * 0.12));
-      vec3 N = normalize(vN + vec3(n1 - 0.5, 0.0, n2 - 0.5) * 0.35);
-      float ndv = max(dot(N, V), 0.0);
-      float fres = 0.03 + 0.97 * pow(1.0 - ndv, 4.2);
+      vec3 N = normalize(vN + vec3(n1 - 0.5, 0.0, n2 - 0.5) * 0.16);
+      float ndv = clamp(dot(normalize(vN), V), 0.0, 1.0);
+      float fres = 0.02 + 0.55 * pow(1.0 - ndv, 4.0);
       vec3 R = reflect(-V, N);
-      R.y = abs(R.y);
+      R.y = max(R.y, 0.02);
       vec3 refl = skyBase(R);
-      vec3 deep = vec3(0.004, 0.025, 0.04);
-      vec3 shallow = vec3(0.02, 0.12, 0.15);
+      vec3 deep = vec3(0.003, 0.018, 0.03);
+      vec3 shallow = vec3(0.012, 0.085, 0.11);
       vec3 body = mix(deep, shallow, smoothstep(-0.12, 0.2, vH) * 0.8 + n1 * 0.2);
       vec3 col = mix(body, refl, clamp(fres, 0.0, 1.0));
       vec3 H = normalize(uSunDir + V);
       col += vec3(1.0, 0.55, 0.25) * pow(max(dot(N, H), 0.0), 400.0) * 3.0;
-      float foam = smoothstep(0.1, 0.19, vH + (n2 - 0.5) * 0.05);
-      col = mix(col, vec3(0.65, 0.7, 0.75), foam * 0.35);
+      float foam = smoothstep(0.14, 0.2, vH + (n2 - 0.5) * 0.08);
+      col = mix(col, vec3(0.5, 0.56, 0.62), foam * 0.16);
       col += vec3(0.4, 0.5, 0.9) * uFlash * 0.2;
       // distance fog towards the horizon colour
       float dist = length(cameraPosition - vWorld);
       vec3 fogCol = skyBase(normalize(vec3(V.x * -1.0, 0.0, V.z * -1.0)));
-      float fog = 1.0 - exp(-pow(dist * 0.012, 1.7));
+      float fog = 1.0 - exp(-pow(dist * 0.011, 1.9));
       col = mix(col, fogCol, clamp(fog, 0.0, 1.0));
       gl_FragColor = vec4(col, 1.0);
       #include <tonemapping_fragment>
@@ -205,8 +205,23 @@ export function makeSea() {
   const group = new THREE.Group();
   const near = new THREE.Mesh(new THREE.PlaneGeometry(90, 90, 360, 360).rotateX(-Math.PI / 2), mat);
   near.frustumCulled = false;
-  const far = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200, 1, 1).rotateX(-Math.PI / 2), farMat);
-  far.position.y = -0.06;
+  // The far sea is a flat frame around the displaced near mesh (a square hole
+  // exactly its size), so the two never overlap: a flat plane under the wave
+  // troughs would poke through them.
+  const frame = new THREE.Shape();
+  frame.moveTo(-600, -600);
+  frame.lineTo(600, -600);
+  frame.lineTo(600, 600);
+  frame.lineTo(-600, 600);
+  frame.closePath();
+  const hole = new THREE.Path();
+  hole.moveTo(-45, -45);
+  hole.lineTo(-45, 45);
+  hole.lineTo(45, 45);
+  hole.lineTo(45, -45);
+  hole.closePath();
+  frame.holes.push(hole);
+  const far = new THREE.Mesh(new THREE.ShapeGeometry(frame).rotateX(-Math.PI / 2), farMat);
   far.frustumCulled = false;
   group.add(far, near);
   group.userData.tick = (t, flash) => {

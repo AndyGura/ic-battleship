@@ -243,6 +243,7 @@ export function mountBattleUI({ client, plugin, scene }) {
     scene.setGhost(null);
     audio.play("lock");
     paintTray();
+    syncBody();
     maybeSubmit();
   }
 
@@ -417,6 +418,8 @@ export function mountBattleUI({ client, plugin, scene }) {
   };
 
   // ── rendering from the client's state ─────────────────────────────────
+  const syncBody = () => document.body.classList.toggle("deploying", !!placingEditable());
+
   function repaint() {
     const L = ui.latest;
     if (!L) return;
@@ -459,6 +462,7 @@ export function mountBattleUI({ client, plugin, scene }) {
       audio.setIntensity(0);
       tray.classList.remove("show");
       fireBtn.classList.remove("show");
+      syncBody();
       return;
     }
     scene.setMode("play");
@@ -516,9 +520,11 @@ export function mountBattleUI({ client, plugin, scene }) {
     applyFocus();
     repaint();
     syncFleetPanels(!scene.isBusy());
+    syncBody();
     maybeSubmit();
   }
 
   client.subscribe((state) => render(state));
   render(client.getState());
+  return ui;
 }

@@ -51,7 +51,9 @@ if (!scene.ok) {
 }
 
 const client = start({ plugin, transport, session });
-mountBattleUI({ client, plugin, scene });
+const ui = mountBattleUI({ client, plugin, scene });
+// handle for browser tests and debugging
+window.__battleship = { scene, client, ui };
 
 // BOTS: "Add Bot" on the waiting screen and the "🤖 Bots" dialog.
 // const bots = mountBotChallenge({ client, actor, plugin, play: botPlayer(agent, canisterId) });

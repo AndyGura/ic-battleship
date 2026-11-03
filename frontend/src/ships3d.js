@@ -5,8 +5,8 @@ import * as THREE from "three";
 import { LENGTH } from "./fleet.js";
 
 const PALETTES = {
-  own: { hull: 0x44566a, belt: 0x6a2f28, deck: 0x7a7e80, super: 0x9aa4ad, dark: 0x1f2428, accent: 0xd4a24c },
-  enemy: { hull: 0x5b4a4a, belt: 0x2a2222, deck: 0x6c6666, super: 0x8f8484, dark: 0x1a1717, accent: 0xc7473a },
+  own: { hull: 0x6a819a, belt: 0x7a3a30, deck: 0x8d9296, super: 0xb4bec8, dark: 0x2a3036, accent: 0xd4a24c },
+  enemy: { hull: 0x86605c, belt: 0x3a2a28, deck: 0x8a7e7c, super: 0xb59f9b, dark: 0x2a2222, accent: 0xc7473a },
 };
 
 const matCache = new Map();

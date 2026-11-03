@@ -81,7 +81,11 @@ export class BattleScene {
     this.sea = makeSea();
     this.scene.add(this.sky, this.sea);
 
-    this.scene.add(new THREE.HemisphereLight(0x8a9bbd, 0x1b2a30, 0.9));
+    this.scene.add(new THREE.HemisphereLight(0x9fb2d6, 0x23343a, 1.5));
+    // a cool fill from the camera side so hulls facing us are not black
+    const fill = new THREE.DirectionalLight(0xb7cdf2, 1.5);
+    fill.position.set(14, 26, 34);
+    this.scene.add(fill);
     const sun = new THREE.DirectionalLight(0xffa866, 2.6);
     sun.position.copy(SUN_DIR).multiplyScalar(60);
     this.scene.add(sun);
@@ -103,9 +107,9 @@ export class BattleScene {
     // menu fleet cruising in the lobby
     this.menuFleet = new THREE.Group();
     this.menuShips = [
-      { kind: "carrier", r: 30, a: 0.4, v: 0.012 },
-      { kind: "battleship", r: 24, a: 2.6, v: -0.016 },
-      { kind: "destroyer", r: 19, a: 4.4, v: 0.02 },
+      { kind: "carrier", r: 24, a: 1.1, v: 0.02 },
+      { kind: "battleship", r: 17, a: 3.4, v: -0.026 },
+      { kind: "destroyer", r: 11, a: 5.2, v: 0.034 },
     ].map((d) => {
       const s = buildShip(d.kind, "own");
       this.menuFleet.add(s);
@@ -584,6 +588,7 @@ export class BattleScene {
     this.fx.update(dt, t);
 
     for (const b of Object.values(this.boards)) {
+      b.group.visible = this.mode !== "menu";
       b.grid.material.uniforms.uTime.value = t;
       for (const rec of b.ships.values()) this.poseShip(b, rec, t, dt);
       for (const m of b.marks) {
@@ -612,9 +617,9 @@ export class BattleScene {
     if (rec.drop > 0) rec.drop = Math.max(0, rec.drop - dt * 3.2);
     const body = rec.body;
     const bob = Math.sin(t * 1.1 + rec.phase);
-    body.position.y = h * 0.9 + rec.drop * 1.6 - 0.42 * s;
-    body.rotation.x = 0.035 * bob + rec.rollSign * 0.62 * s;
-    body.rotation.z = 0.03 * Math.sin(t * 0.9 + rec.phase * 2) - 0.13 * s;
+    body.position.y = h * 0.9 + rec.drop * 1.6 - 0.27 * s;
+    body.rotation.x = 0.035 * bob + rec.rollSign * 0.5 * s;
+    body.rotation.z = 0.03 * Math.sin(t * 0.9 + rec.phase * 2) - 0.1 * s;
   }
 
   updateMenuFleet(t) {
@@ -623,7 +628,7 @@ export class BattleScene {
     if (!show) return;
     for (const m of this.menuShips) {
       const a = m.a + t * m.v;
-      m.s.position.set(Math.cos(a) * m.r, waveH(Math.cos(a) * m.r, Math.sin(a) * m.r, t) * 0.9, Math.sin(a) * m.r - 6);
+      m.s.position.set(Math.cos(a) * m.r, waveH(Math.cos(a) * m.r, Math.sin(a) * m.r, t) * 0.9, Math.sin(a) * m.r - 10);
       m.s.rotation.y = -a + (m.v > 0 ? -Math.PI / 2 : Math.PI / 2);
       m.s.userData.body.rotation.x = 0.03 * Math.sin(t + m.a);
     }
@@ -646,10 +651,10 @@ export class BattleScene {
       look = new THREE.Vector3(0, 0, 1);
     } else {
       const b = this.boards[this.focusName];
-      const k = fit(this.placing ? 13.2 : 15, 16.3);
+      const k = fit(this.placing ? 17 : 15, 16.3);
       const base = this.placing ? new THREE.Vector3(0, 15, 7.5) : new THREE.Vector3(0, 11.5, 12.5);
       pos = b.center.clone().add(base.multiplyScalar(k));
-      look = b.center.clone().add(new THREE.Vector3(0, 0, this.placing ? 0.5 : -0.6));
+      look = b.center.clone().add(new THREE.Vector3(0, 0, this.placing ? 2.6 : 0.4));
     }
     const kPos = 1 - Math.exp(-dt * 1.9);
     this.camPos.lerp(pos, kPos);
@@ -665,9 +670,11 @@ export class BattleScene {
     this.sky.position.copy(this.camera.position);
   }
 
-  /** Cells (as seen on screen) of the last event, for HUD hints. */
-  lastCell() {
-    return this.cur?.ev ?? null;
+  /** Screen position (CSS px) of a cell centre, for tests and HUD hints. */
+  cellToScreen(boardName, x, y) {
+    const b = this.boards[boardName];
+    const p = new THREE.Vector3(...b.cellPos(x, y, 0.2)).project(this.camera);
+    return { x: ((p.x + 1) / 2) * window.innerWidth, y: ((1 - p.y) / 2) * window.innerHeight };
   }
 }
 

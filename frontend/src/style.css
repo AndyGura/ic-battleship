@@ -142,7 +142,7 @@ button.primary:hover:not(:disabled) {
 body[data-screen="game"] main {
   position: fixed;
   right: 12px;
-  bottom: 12px;
+  top: 54px;
   width: min(290px, calc(100vw - 24px));
   margin: 0;
   padding: 0.8rem 0.95rem;
@@ -186,19 +186,6 @@ body[data-screen="game"] main p {
   #sid {
     display: none;
   }
-  body[data-screen="game"] main {
-    right: 8px;
-    bottom: auto;
-    top: 46px;
-    width: auto;
-    max-width: 190px;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.7rem;
-  }
-  body[data-screen="game"] main .tally span:nth-child(3),
-  body[data-screen="game"] main .countdown:empty {
-    display: none;
-  }
   body[data-screen="menu"] main,
   body[data-screen="debrief"] main {
     margin: 0.5rem 10px 2rem;
@@ -240,7 +227,8 @@ body[data-screen="game"] main p {
   margin-top: 0.15rem;
   font-size: 0.82rem;
   letter-spacing: 0.1em;
-  color: var(--muted);
+  color: #d6e0e8;
+  text-shadow: 0 1px 3px #000, 0 0 12px #000, 0 0 22px rgba(0, 0, 0, 0.9);
   font-family: system-ui, sans-serif;
 }
 .hud-banner.fire .b-title {
@@ -372,6 +360,7 @@ body[data-screen="game"] main p {
   color: var(--accent);
 }
 .tray-timer {
+  text-transform: none;
   font: 700 1.1rem system-ui, sans-serif;
   color: var(--ink);
   letter-spacing: 0;
@@ -531,45 +520,89 @@ body[data-screen="game"] main p {
 }
 
 @media (max-width: 720px) {
+  .hud-banner {
+    top: 44px;
+  }
   .hud-fleets {
-    top: 84px;
+    top: 96px;
+    left: 8px;
+    right: 8px;
     flex-direction: row;
-    gap: 4px;
+    gap: 6px;
   }
   .fleet {
+    flex: 1 1 0;
     min-width: 0;
-    padding: 0.3rem 0.45rem;
+    padding: 0.3rem 0.5rem;
   }
   .fleet li {
-    font-size: 0.6rem;
+    font-size: 0.62rem;
     line-height: 1.35;
+    white-space: nowrap;
   }
   .fleet li .pips {
-    width: 2.6em;
-  }
-  .hud-banner {
-    top: 40px;
+    width: 2.8em;
   }
   .hud-log {
     display: none;
   }
+  /* view buttons: a slim column on the right edge */
   .hud-tools {
-    bottom: auto;
-    top: 8px;
-    right: 8px;
     left: auto;
+    right: 8px;
+    bottom: auto;
+    top: 218px;
+    flex-direction: column;
   }
   .hud-tools button {
-    font-size: 0;
-    padding: 0.35rem 0.5rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 1rem;
+    line-height: 1;
   }
-  .hud-tools button::first-letter {
+  .hud-tools button[data-focus] {
+    font-size: 0;
+  }
+  .hud-tools button[data-focus]::first-letter {
     font-size: 1rem;
   }
-  .cards {
-    grid-template-columns: repeat(5, 1fr);
+  .hud-tray {
+    bottom: 8px;
+    width: calc(100vw - 16px);
+    padding: 0.55rem 0.6rem 0.65rem;
   }
   .card b {
     font-size: 0.58rem;
+  }
+  .hud-fire {
+    bottom: 70px;
+  }
+  /* the engine's chrome (claim-win, forfeit) sits along the bottom, and gives
+   * way to the deploy tray while the fleet is being placed */
+  body[data-screen="game"] main {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: 8px;
+    width: auto;
+    max-width: none;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.72rem;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  body[data-screen="game"].deploying main {
+    display: none;
+  }
+  body[data-screen="game"] main .tally {
+    display: flex;
+    gap: 0.7rem;
+  }
+  body[data-screen="game"] main .countdown:empty {
+    display: none;
+  }
+  body[data-screen="game"] main button {
+    padding: 0.3rem 0.7rem;
   }
 }
