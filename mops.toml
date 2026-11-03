@@ -1,0 +1,12 @@
+[package]
+name = "ic-battleship"
+version = "0.1.0"
+description = "ic-battleship — a duel-game-core game"
+
+[dependencies]
+duel-game-core = "./vendor/duel-game-core"
+core = "2.6.2"
+promtracker = "1.0.2"
+
+[toolchain]
+moc = "2.0.0"

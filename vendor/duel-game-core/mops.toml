@@ -1,0 +1,13 @@
+[package]
+name = "duel-game-core"
+version = "0.1.0"
+description = "Generic 2-player global-board session engine"
+files = [ "src/**/*.mo" ]
+
+[dependencies]
+core = "2.6.2"
+promtracker = "1.0.1"
+prng = "0.2.0"
+
+[toolchain]
+moc = "2.0.0"

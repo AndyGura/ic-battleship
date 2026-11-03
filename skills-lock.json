@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "duel-game-core": {
+      "source": "research-ag/duel-core",
+      "sourceType": "github",
+      "skillPath": "skills/duel-game-core/SKILL.md",
+      "computedHash": "4fb5e8ff197484bd8f53911fe39e28d98162d9d89e8818bdfa16383dc793e363",
+      "installMode": "copy"
+    }
+  }
+}
