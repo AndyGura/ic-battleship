@@ -18,6 +18,14 @@
 ///   WIN     the admiral who sinks the enemy's last ship wins. There is no
 ///           draw.
 ///
+/// Follow-up moves (framework guide, turn-based-games.md, "Follow-up moves"):
+/// a hit grants another shot, but whether a shot hits is hidden from the
+/// shooter until the canister answers, so a turn cannot be built client-side
+/// as one batched action (as dots and boxes does, where the mover can predict
+/// it). Hence ONE #fire per call, `move` keeps `turn` on a hit, and the
+/// player sees each result before choosing the next shot. The fleet, by
+/// contrast, is one whole-turn #place action: nothing about it is hidden.
+///
 /// Time limit for setup: the rules are pure and cannot read a clock, so the
 /// limit is the engine's claim-win window (Host.mo `claimTimeout`): an
 /// admiral who does not place the fleet in time may have the win claimed
