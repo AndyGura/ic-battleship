@@ -4,7 +4,8 @@
 import * as THREE from "three";
 
 function softTexture(kind) {
-  const s = 128;
+  const s = 256;
+  const k = s / 128;
   const c = document.createElement("canvas");
   c.width = c.height = s;
   const g = c.getContext("2d");
@@ -12,15 +13,24 @@ function softTexture(kind) {
     // a few overlapping blobs, so a rotating sprite looks like a puff
     const rnd = (a) => (Math.sin(a * 91.7) * 43758.5453) % 1;
     for (let i = 0; i < 9; i++) {
-      const x = s / 2 + (rnd(i + 1) - 0.3) * 40;
-      const y = s / 2 + (rnd(i + 11) - 0.3) * 40;
-      const r = 26 + Math.abs(rnd(i + 21)) * 22;
+      const x = s / 2 + (rnd(i + 1) - 0.3) * 26 * k;
+      const y = s / 2 + (rnd(i + 11) - 0.3) * 26 * k;
+      const r = (20 + Math.abs(rnd(i + 21)) * 14) * k;
       const gr = g.createRadialGradient(x, y, 0, x, y, r);
       gr.addColorStop(0, "rgba(255,255,255,0.55)");
       gr.addColorStop(1, "rgba(255,255,255,0)");
       g.fillStyle = gr;
       g.fillRect(0, 0, s, s);
     }
+    // fade to nothing before the edge, so a big sprite never shows a square
+    g.globalCompositeOperation = "destination-in";
+    const mask = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    mask.addColorStop(0, "rgba(0,0,0,1)");
+    mask.addColorStop(0.7, "rgba(0,0,0,1)");
+    mask.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = mask;
+    g.fillRect(0, 0, s, s);
+    g.globalCompositeOperation = "source-over";
   } else {
     const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
     gr.addColorStop(0, "rgba(255,255,255,1)");

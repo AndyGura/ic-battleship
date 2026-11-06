@@ -30,6 +30,7 @@ this repository is the game on top of it.
 | `frontend/src/audio.js` | procedural music and effects |
 | `frontend/play-test.mjs` | headless end-to-end test: two players play whole games |
 | `frontend/check-upgrade.mjs` | checks an upgrade against the live backend before deploying it |
+| `banner.png` | 800x400 PNG banner for the Duel dashboard listing (rendered from the 3D scene) |
 | `vendor/duel-game-core/` | the framework's Motoko package, vendored (not on mops.one yet) |
 | `scripts/local-replica.mjs` | local replica fallback when `icp network start` cannot download its launcher |
 | `.claude/skills/duel-game-core/` | the framework's skill: its `references/` describe every deploy route |
