@@ -91,16 +91,22 @@ The steps, with the exact tool calls, are in
 
 ## Canisters
 
-**Free test copies on hosty.live's cloud engine. Not the live game:** hosty.live may delete
-them at its discretion, and the Duel dashboard will not list a game that runs on them.
+**The live game (mainnet)** — play at **https://2zrsm-hiaaa-aaaau-ahiqa-cai.icp0.io/**
 
 | Canister | Id | Network |
 | --- | --- | --- |
-| backend | `hw4b5-haaaa-aaacl-aaaea-cai` | cloud engine (test) |
-| frontend | `hr5hj-kyaaa-aaacl-aaaeq-cai` | cloud engine (test) |
+| backend | `7fkij-maaaa-aaaau-ahipq-cai` | mainnet, **live** |
+| frontend | `2zrsm-hiaaa-aaaau-ahiqa-cai` | mainnet, **live** |
 
-Play: https://hr5hj-kyaaa-aaacl-aaaeq-cai.icp0.io/
+Every approved change upgrades these (backend: `snapshotBeforeUpgrade`, after
+`cd frontend && node check-upgrade.mjs 7fkij-maaaa-aaaau-ahipq-cai` exits 0). The game is
+online but **unlisted** on the Duel dashboard (https://games.ic0.info/) until its frontend is
+registered there.
 
-Every change goes back into these canisters (backend upgrade with `snapshotBeforeUpgrade`,
-page upload with `PUBLIC_CANISTER_ID:backend` set to the backend id). When the game goes
-live, mainnet canisters are bought and their ids replace these and are marked as live.
+**Preview copies (hosty.live cloud engine), not the live game.** hosty.live may delete them
+at its discretion; they can be deleted once the live game is registered:
+
+| Canister | Id |
+| --- | --- |
+| backend | `hw4b5-haaaa-aaacl-aaaea-cai` |
+| frontend | `hr5hj-kyaaa-aaacl-aaaeq-cai` |

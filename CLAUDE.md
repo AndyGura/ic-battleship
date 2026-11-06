@@ -8,17 +8,20 @@ for a change to the live game, its `references/changing-a-live-game.md`.
 
 ## Live
 
-**Not live yet; test copies only.** Free hosty.live cloud engine canisters (hosty.live may
-delete them; the Duel dashboard will not list them):
+Deployed through hosty.live (`.claude/skills/duel-game-core/references/going-live.md`).
+The mainnet canisters are the live game; every approved change upgrades them
+(`snapshotBeforeUpgrade` for the backend), never the preview copies.
 
 | Canister | Id | Runs |
 | -------- | -- | ---- |
-| backend  | `hw4b5-haaaa-aaacl-aaaea-cai` | test copy |
-| frontend | `hr5hj-kyaaa-aaacl-aaaeq-cai` | https://hr5hj-kyaaa-aaacl-aaaeq-cai.icp0.io/ (test copy) |
+| backend  | `7fkij-maaaa-aaaau-ahipq-cai` | the game (mainnet); the module store has it, verified |
+| frontend | `2zrsm-hiaaa-aaaau-ahiqa-cai` | https://2zrsm-hiaaa-aaaau-ahiqa-cai.icp0.io/ (mainnet) |
 
-If hosty.live deletes one, recreate it on the cloud engine (not mainnet), reinstall/upload, and
-point the page's `PUBLIC_CANISTER_ID:backend` at the backend. Mainnet canisters are bought only
-when the owner says the game goes live.
+Unlisted on the Duel dashboard until the owner registers the frontend there.
+
+Preview copies on hosty.live's free cloud engine (not the live game; hosty.live may delete
+them, and they can be deleted once the live game is registered): backend
+`hw4b5-haaaa-aaacl-aaaea-cai`, frontend `hr5hj-kyaaa-aaacl-aaaeq-cai`.
 
 ## What the game runs
 
