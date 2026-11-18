@@ -36,7 +36,8 @@
 /// Presence only keeps a waiting table open: a client waiting at a table
 /// sends `keepAlive` every `KEEP_ALIVE_SECS`, and `sweep` (every
 /// `SWEEP_SECS`) clears a waiting table past the idle timeout whose
-/// creator went silent for `PRESENCE_TTL_NS`.
+/// creator went silent for `PRESENCE_TTL_NS`. The sweep timer runs only
+/// while there is a table or a presence entry (`wake`).
 ///
 /// Wiring — the methods whose signatures name none of the game's types
 /// come from `./transport_actor_mixin` (a mixin cannot take type
@@ -102,12 +103,31 @@ module {
 
   public type Scoring<S> = { board : Leaderboard.Board; rating : Rating<S> };
 
+  /// The sweep timer: its id while it runs, and when it started or last
+  /// swept. `sweeper()` arms and cancels it with `mo:core/Timer`; a test
+  /// passes its own functions.
+  public type Sweeper = {
+    var timer : ?Timer.TimerId;
+    var lastRun : Int;
+    every : <system>(Nat, () -> async ()) -> Timer.TimerId;
+    cancel : Timer.TimerId -> ();
+  };
+
+  public func sweeper() : Sweeper = {
+    var timer = null;
+    var lastRun = 0;
+    every = func<system>(secs : Nat, job : () -> async ()) : Timer.TimerId = Timer.recurringTimer<system>(#seconds secs, job);
+    cancel = Timer.cancelTimer;
+  };
+
   /// The function values a call needs, built by the host from its rules
-  /// module (and its bot call); never stored in `Duel`.
+  /// module (and its bot call), and the sweep timer, which an upgrade
+  /// cancels; never stored in `Duel`.
   public type Env<S, M, V, O> = {
     spec : TP.Spec<S, M, V, O>;
     bots : ?Bots<V, M>;
     scoring : ?Scoring<S>;
+    sweeper : Sweeper;
   };
 
   /// A lobby function's reply: the table it was about and that table's
@@ -150,6 +170,11 @@ module {
   /// How often `sweep` runs. A waiting table whose creator went silent
   /// is gone within the idle timeout plus about one interval.
   public let SWEEP_SECS : Nat = 30;
+
+  /// How long the sweep timer may go without sweeping (three intervals)
+  /// before `wake` replaces it, as lost (a canister out of cycles can
+  /// lose it).
+  public let SWEEP_STALLED_NS : Int = 90_000_000_000;
 
   public func isPresent<S, M, O>(self : Duel<S, M, O>, player : TP.PlayerId, now : Int) : Bool {
     switch (self.presence.get(player)) {
@@ -259,7 +284,9 @@ module {
     let ?player = playerOf(caller) else return #err(#unauthorized);
     let now = Time.now();
     markSeen(self, player, now);
-    switch (op(now, player)) {
+    let r = op(now, player);
+    wake<system, S, M, V, O>(self, env);
+    switch (r) {
       case (#err e) #err e;
       case (#ok id) {
         await* afterMutation<system, S, M, V, O>(self, env, now, id, bumpLobbyToo);
@@ -325,9 +352,10 @@ module {
   };
 
   /// Keeps the caller's waiting table open; changes nothing else.
-  public func keepAlive<S, M, O>(self : Duel<S, M, O>, caller : Principal) : TP.Res<()> {
+  public func keepAlive<system, S, M, V, O>(self : Duel<S, M, O>, env : Env<S, M, V, O>, caller : Principal) : TP.Res<()> {
     let ?player = playerOf(caller) else return #err(#unauthorized);
     markSeen(self, player, Time.now());
+    wake<system, S, M, V, O>(self, env);
     #ok;
   };
 
@@ -386,11 +414,40 @@ module {
     };
   };
 
+  func idle<S, M, O>(self : Duel<S, M, O>) : Bool = self.registry.tables.size() == 0 and self.presence.size() == 0;
+
+  /// Starts the sweep timer when there is something to sweep (a table, or
+  /// presence to expire) and it is not running, or has not swept for
+  /// `SWEEP_STALLED_NS`. Called by every update that records presence
+  /// (each mutation, rejected or not, and `keepAlive`; not an anonymous
+  /// caller's), and by `./transport_actor_mixin` at install and upgrade.
+  /// Queries never call it.
+  public func wake<system, S, M, V, O>(self : Duel<S, M, O>, env : Env<S, M, V, O>) {
+    if (idle(self)) return;
+    let now = Time.now();
+    switch (env.sweeper.timer) {
+      case (?id) {
+        if (now - env.sweeper.lastRun < SWEEP_STALLED_NS) return;
+        env.sweeper.cancel(id);
+      };
+      case null {};
+    };
+    env.sweeper.lastRun := now;
+    env.sweeper.timer := ?env.sweeper.every<system>(
+      SWEEP_SECS,
+      func() : async () {
+        await* sweep<system, S, M, V, O>(self, env, Time.now());
+      },
+    );
+  };
+
   /// Clears expired tables (a waiting one stays while its creator is
   /// present), bumps the `rev` of every table it changed and the
   /// lobby's when anything changed, prunes presence, then settles
-  /// canister players everywhere (the slow fallback).
+  /// canister players everywhere (the slow fallback). Stops the sweep
+  /// timer once nothing is left.
   public func sweep<system, S, M, V, O>(self : Duel<S, M, O>, env : Env<S, M, V, O>, now : Int) : async* () {
+    env.sweeper.lastRun := now;
     func shape(t : TP.Table<S, M, O>) : (Nat, Nat) {
       let tag = switch (t.phase) {
         case (#empty) 0;
@@ -421,6 +478,13 @@ module {
       case (?ctx) await* CanisterPlayers.sweep<system, S, M, V, O>(ctx, now);
       case null {};
     };
+    switch (env.sweeper.timer) {
+      case (?id) if (idle(self)) {
+        env.sweeper.cancel(id);
+        env.sweeper.timer := null;
+      };
+      case null {};
+    };
   };
 
   /// The methods `./transport_actor_mixin` exposes: none of them names
@@ -432,8 +496,8 @@ module {
     reset : <system>(Principal, TP.TableId, Nat) -> async* Ack;
     claimWin : <system>(Principal, TP.TableId, Nat) -> async* Ack;
     ackEnded : <system>(Principal, TP.TableId) -> async* Ack;
-    keepAlive : (Principal) -> TP.Res<()>;
-    sweep : <system>(Int) -> async* ();
+    keepAlive : <system>(Principal) -> TP.Res<()>;
+    wake : <system>() -> ();
   };
 
   /// Functions over `self` and `env` for the mixin; no data of their own.
@@ -445,8 +509,8 @@ module {
     reset = func<system>(c : Principal, id : TP.TableId, gen : Nat) : async* Ack = await* reset<system, S, M, V, O>(self, env, c, id, gen);
     claimWin = func<system>(c : Principal, id : TP.TableId, gen : Nat) : async* Ack = await* claimWin<system, S, M, V, O>(self, env, c, id, gen);
     ackEnded = func<system>(c : Principal, id : TP.TableId) : async* Ack = await* ackEnded<system, S, M, V, O>(self, env, c, id);
-    keepAlive = func(c : Principal) : TP.Res<()> = keepAlive(self, c);
-    sweep = func<system>(now : Int) : async* () = await* sweep<system, S, M, V, O>(self, env, now);
+    keepAlive = func<system>(c : Principal) : TP.Res<()> = keepAlive<system, S, M, V, O>(self, env, c);
+    wake = func<system>() = wake<system, S, M, V, O>(self, env);
   };
 
   /// The bot-facing functions for `./canister_players_actor_mixin`, or

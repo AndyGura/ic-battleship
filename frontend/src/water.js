@@ -103,10 +103,10 @@ export function makeSky() {
           float lit = pow(sunAmt, 3.0);
           vec3 cloud = mix(vec3(0.05, 0.06, 0.1), vec3(0.28, 0.2, 0.2), c2);
           cloud += vec3(1.0, 0.45, 0.15) * lit * (1.0 - c * 0.6) * 1.1;
-          cloud += vec3(0.5, 0.6, 1.0) * uFlash * (0.4 + c);
+          cloud += vec3(0.45, 0.55, 1.0) * uFlash * (0.15 + c * 0.35);
           col = mix(col, cloud, cover * smoothstep(0.0, 0.18, d.y) * 0.9);
         }
-        col += vec3(0.5, 0.6, 1.0) * uFlash * 0.25;
+        col += vec3(0.4, 0.5, 1.0) * uFlash * 0.06;
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -186,7 +186,7 @@ export function makeSea() {
       col += vec3(1.0, 0.55, 0.25) * pow(max(dot(N, H), 0.0), 400.0) * 3.0;
       float foam = smoothstep(0.14, 0.2, vH + (n2 - 0.5) * 0.08);
       col = mix(col, vec3(0.5, 0.56, 0.62), foam * 0.16);
-      col += vec3(0.4, 0.5, 0.9) * uFlash * 0.2;
+      col += vec3(0.3, 0.4, 0.8) * uFlash * 0.05;
       // distance fog towards the horizon colour
       float dist = length(cameraPosition - vWorld);
       vec3 fogCol = skyBase(normalize(vec3(V.x * -1.0, 0.0, V.z * -1.0)));

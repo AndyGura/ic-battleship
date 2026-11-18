@@ -11,6 +11,9 @@ this repository is the game on top of it.
   fleet. The server-side backstop is the engine's claim-win window (60 s): an admiral
   who has not deployed by then can have the win claimed against them. (The rules module
   is pure and cannot read a clock, so the limit cannot be stricter than that.)
+- **Invite a friend.** Choose "Invite a friend" in the lobby and share the link: they open it and
+  sit down at your table (the table waits 30 minutes for them). Your player is kept per browser, so
+  play the other seat from another browser or a private window.
 - **Battle.** A coin toss picks who fires first. A miss passes the turn, **a hit
   keeps it**; a sunk ship is revealed. Sink all five enemy ships to win.
 - **Style.** A 3D dusk storm at sea (Three.js): shader sea and sky, procedural ships,

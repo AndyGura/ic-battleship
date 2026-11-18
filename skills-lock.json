@@ -1,11 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "duel-game-core": {
       "source": "research-ag/duel-core",
+      "commit": "cd3f16374f3613b5486a464ed18a3ee57c9606aa",
       "sourceType": "github",
       "skillPath": "skills/duel-game-core/SKILL.md",
-      "computedHash": "66278721c01895eeb246a58b1719df80bb82bc015607d923afd70cf59aff7d18",
+      "computedHash": "e5d6a78b40bac27a76207bd9deaa3b5968c172b67506102c0452706a909a5387",
       "installMode": "copy"
     }
   }

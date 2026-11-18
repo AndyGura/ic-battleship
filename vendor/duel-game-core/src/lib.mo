@@ -21,6 +21,7 @@
 ///       spec = Rules.spec;
 ///       bots = null;
 ///       scoring = null;
+///       sweeper = Transport.sweeper();
 ///     };
 ///     // include TransportActorMixin<system>(duel.lobby(env)) + the four
 ///     // host-declared pass-throughs — see `./transport`
@@ -39,7 +40,9 @@
 /// (`gen`/`step` mismatches come back `#stale`), hidden information stays
 /// hidden (every view goes through the game's `view`). `Spec` is tagged
 /// by `Mode`; in `#turnBased` the rules' `toMove` says whose action is
-/// next and only the waiting seat may `claimWin`.
+/// next and only the waiting seat may `claimWin`. A `#code` table is an
+/// invite: it waits `Table.INVITE_WAIT_NS` for the friend, and its first
+/// moves get `Table.INVITE_GRACE_NS` on both clocks.
 
 import Array "mo:core/Array";
 import Int "mo:core/Int";

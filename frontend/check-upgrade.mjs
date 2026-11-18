@@ -30,10 +30,41 @@ const root = resolve(import.meta.dirname, "..");
 const work = mkdtempSync(join(tmpdir(), "check-upgrade-"));
 const sh = (cmd, args) => execFileSync(cmd, args, { cwd: root, encoding: "utf8" }).trim();
 
+// Reads a custom section straight from the wasm bytes: Node's
+// WebAssembly.Module rejects some modules (newer table/memory encodings)
+// that moc and the replica accept, and only the sections are needed here.
+function customSections(wasm) {
+  const b = new Uint8Array(wasm);
+  let p = 8; // magic + version
+  const leb = () => {
+    let r = 0, shift = 0, byte;
+    do {
+      byte = b[p++];
+      r |= (byte & 0x7f) << shift;
+      shift += 7;
+    } while (byte & 0x80);
+    return r >>> 0;
+  };
+  const out = new Map();
+  while (p < b.length) {
+    const id = b[p++];
+    const size = leb();
+    const end = p + size;
+    if (id === 0) {
+      const nameLen = leb();
+      const name = new TextDecoder().decode(b.subarray(p, p + nameLen));
+      p += nameLen;
+      out.set(name, b.subarray(p, end));
+    }
+    p = end;
+  }
+  return out;
+}
+
 function section(wasm, name) {
-  const mod = new WebAssembly.Module(wasm);
+  const sections = customSections(wasm);
   for (const vis of ["public", "private"]) {
-    const [s] = WebAssembly.Module.customSections(mod, `icp:${vis} ${name}`);
+    const s = sections.get(`icp:${vis} ${name}`);
     if (s) return new TextDecoder().decode(s);
   }
   return null;

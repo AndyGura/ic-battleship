@@ -31,7 +31,11 @@ them, and they can be deleted once the live game is registered): backend
   `frontend/src/game-ui.js`) that auto-places the fleet; server backstop is
   the claim-win window (`60_000_000_000` ns in `src/Host.mo`). Rules are pure: no clock.
 - duel-game-core: vendored in `vendor/duel-game-core` (mops path dependency) and
-  `@research-ag/duel-game-core` 0.4.1 (npm).
+  `@research-ag/duel-game-core` 0.5.1 (npm; invite links come from it). The vendored Motoko
+  package is duel-core `main` at cd3f163 (lazy sweep timer, invite clocks): see `vendor/duel-game-core/UPSTREAM.md`.
+- Host `env` carries `sweeper = Transport.sweeper()` (transient): the sweep timer runs only while a
+  table or a waiting player exists. After a deploy, `canister_version` in `/metrics` stays flat while
+  nobody plays. Keep the backend above 1 TC: with 256 MiB of memory its timer stalls near 0.48 TC.
 
 ## Working here
 
@@ -39,7 +43,8 @@ them, and they can be deleted once the live game is registered): backend
 - If `icp network start` cannot fetch its launcher (github.com blocked):
   `icp build backend && node scripts/local-replica.mjs` (README).
 - `icp build` needs `ic-wasm` on the PATH: `npm install -g @icp-sdk/ic-wasm`.
-- Before upgrading the backend: `cd frontend && node check-upgrade.mjs <backend-id>` must exit 0.
+- Before upgrading the backend: `cd frontend && node check-upgrade.mjs <backend-id>` must exit 0
+  (its wasm section reader is our own: Node's `WebAssembly.Module` rejects the module). If it fails, ask the owner first.
 - A change to `View`, `Action`, `Options` or the rules updates `SEMANTICS` in the same
   change, and `idlTypes` in `frontend/src/battleship-plugin.js`.
 - The 3D scene is `frontend/src/scene.js` (+ `water.js`, `ships3d.js`, `fx.js`); the page
