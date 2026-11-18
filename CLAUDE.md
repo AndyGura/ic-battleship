@@ -37,6 +37,17 @@ them, and they can be deleted once the live game is registered): backend
   table or a waiting player exists. After a deploy, `canister_version` in `/metrics` stays flat while
   nobody plays. Keep the backend above 1 TC: with 256 MiB of memory its timer stalls near 0.48 TC.
 
+## Deploying without the upload token
+
+`hosty_prepare_*` + curl needs the proxy's hosty.live token to be valid; if it answers `401 Invalid or
+revoked API token`, install without it: commit the built module (and `frontend/dist` as `deploy/dist`)
+under `deploy/`, then `hosty_install_wasm_url` (raw GitHub URL pinned to the commit; `mode: upgrade`,
+`snapshotBeforeUpgrade: true`) for the backend and `hosty_deploy_url` (the commit's archive, `pureAssets`,
+`outputDir: ic-battleship-<sha>/deploy/dist`) for the page; remove `deploy/` afterwards. If the page deploy
+reports FAILED with "Canister 6aeum-… is out of cycles" (hosty's own bookkeeping), check the live
+`app.js` hash before retrying: the assets may already be live. The frontend canister's builder access
+may need `hosty_setup_frontend_canister` first (it wipes nothing on an asset canister).
+
 ## Working here
 
 - `mops test`; `cd frontend && npm run build && node play-test.mjs [<backend-id> [--ic]]`.
