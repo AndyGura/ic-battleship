@@ -1,0 +1,826 @@
+/* Generic layout primitives for a TwoPlayer-engine client. Everything
+ * here supports the screens rendered directly by render.js (lobby,
+ * busy, staging, rematch, debrief chrome, endedByOther) plus a few
+ * neutral utility classes a GamePlugin's own board/action markup can
+ * opt into. Game-specific visuals (piece icons, resource meters, board
+ * grids of a particular shape, ...) belong in the game's own stylesheet,
+ * layered on top of this one.
+ */
+
+:root {
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --panel: #14181d;
+  --panel-2: #1b2027;
+  --line: #262d36;
+  --ink: #e6e9ee;
+  --muted: #8b95a3;
+  --accent: #d4af37;
+  --red: #ff6b5e;
+  --green: #58d68d;
+  --blue: #6aa9ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0 1.25rem 3rem;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, #171c23 0%, transparent 70%),
+    var(--bg);
+  color: var(--ink);
+  font:
+    15px/1.55 ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  min-height: 100vh;
+}
+
+body.working {
+  cursor: progress;
+}
+
+header {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.75rem 0 1.25rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+h1 .sub {
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  font-weight: 400;
+  font-size: 0.95rem;
+}
+
+/* The header is two full-width rows: the title with the link to the Duel
+ * Dashboard pushed right, then `.session` with the trophy left and the
+ * player id cluster pushed right. */
+.header-title {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+  row-gap: 0.25rem;
+}
+
+.more-games {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.more-games:hover {
+  color: var(--accent);
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.session {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.session .label {
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+/* `.table-code` reuses this same treatment for a protected table's own
+ * access code (renderStagingYou) — a different place the same "here's a
+ * short code, shown plainly" shape shows up. */
+.session code,
+.table-code {
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.78rem;
+}
+
+/* The player id specifically (not `.table-code`'s short access codes,
+ * which never need this) — a full principal is long enough to stretch
+ * the whole header on a narrow screen otherwise, so it's clipped with an
+ * ellipsis; the untruncated id is still one click away via "new", and a
+ * screen reader gets the full text regardless of the visual clip. */
+#sid {
+  display: inline-block;
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+main {
+  max-width: 860px;
+  margin: 1.75rem auto 0;
+}
+
+footer {
+  max-width: 860px;
+  margin: 2.5rem auto 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  max-width: 860px;
+  margin: 1rem auto 0;
+  padding: 0.65rem 0.9rem;
+  background: #2a1512;
+  border: 1px solid #5d2a24;
+  border-left: 3px solid var(--red);
+  border-radius: 4px;
+  color: #ffb4ac;
+  font-size: 0.88rem;
+}
+
+/* A neutral bordered callout — available for a GamePlugin's own board or
+ * action markup to reuse (e.g. a "last move" summary). Not used by
+ * render.js itself. */
+.callout {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  margin: 0 0 1.25rem;
+}
+
+/* ── buttons ─────────────────────────────────────────────────────────── */
+
+button {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    transform 0.05s;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: #232a33;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Shown on whichever button matches the in-flight call's content key
+ * (see app.js's applyLoadingState()/buttonKey()) for as long as it's in
+ * flight — IC update calls are slow enough (hundreds of ms to a few
+ * seconds) that a click with no feedback at all reads as broken. Applied
+ * fresh after every render, not just at click time, so a screen redrawn
+ * mid-flight by an unrelated push (e.g. the other seat being taken)
+ * still finds and marks the equivalent button instead of silently
+ * losing the spinner on the brand new DOM node that redraw created. The
+ * label stays in the DOM (just hidden via `color`/`visibility`, not
+ * removed) so the button doesn't reflow/resize while spinning.
+ * `:disabled`'s 0.35 opacity above would otherwise dim this same button
+ * (JS disables it too, to block a second click); this rule wins by
+ * coming after it, same specificity, and pins opacity back to 1. The
+ * spinner's own `color` is set explicitly rather than inherited, since
+ * the button's own text color is hidden via `color: transparent` right
+ * below and `currentColor` would otherwise resolve to that. */
+button.duel-loading {
+  position: relative;
+  opacity: 1;
+  color: transparent;
+  cursor: progress;
+}
+
+button.duel-loading > * {
+  visibility: hidden;
+}
+
+button.duel-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1em;
+  height: 1em;
+  margin: -0.5em 0 0 -0.5em;
+  color: var(--ink);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: duel-btn-spin 0.6s linear infinite;
+}
+
+@keyframes duel-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #17130a;
+  font-weight: 650;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #e2c257;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+#new-sid {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* ── form controls (text inputs, radios, checkboxes) ────────────────────
+ * `color-scheme: dark` on :root (below) already gets a native
+ * checkbox/radio rendered in dark-appropriate colors in every engine that
+ * honors it; `accent-color` then ties its checked-state color to the
+ * theme instead of the browser default blue. Text inputs get no such
+ * free ride — those are styled outright to match `button`'s panel/line
+ * treatment above, since an unstyled `<input>` is plain white-on-white
+ * chrome. */
+
+input[type="text"],
+input[type="number"] {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  transition: border-color 0.15s;
+}
+
+input[type="text"]::placeholder,
+input[type="number"]::placeholder {
+  color: var(--muted);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 1rem;
+  height: 1rem;
+  vertical-align: middle;
+}
+
+label {
+  cursor: pointer;
+}
+
+/* ── lobby ───────────────────────────────────────────────────────────── */
+
+.seats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+button.seat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: flex-start;
+  padding: 1.1rem 1.2rem;
+  background: var(--panel);
+}
+
+.seat-label {
+  color: var(--accent);
+  letter-spacing: 0.16em;
+  font-weight: 700;
+}
+
+.countdown {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── lobby-of-tables (renderBrowsing) ───────────────────────────────────
+ * `.create-table`/`.open-tables` are the two <section>s of the
+ * lobby-of-tables screen; `h3` styling here is scoped to inside them
+ * rather than global so it doesn't leak into a GamePlugin's own board
+ * markup. */
+
+.create-table,
+.open-tables {
+  margin-bottom: 1.75rem;
+}
+
+.create-table h3,
+.open-tables h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.create-table label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 1.25rem 0.75rem 0;
+}
+
+.table-code-input {
+  margin-bottom: 0.75rem;
+}
+
+/* Groups the visibility radios and, when the game has `variantChoices()`,
+ * a rules/mode radio group above them — each with its own caption and a
+ * divider so the two rows read as separate fields rather than one run-on
+ * list of buttons. */
+.option-group {
+  padding-bottom: 0.9rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.option-group:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 1.25rem;
+}
+
+.option-group-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.6rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.table-id {
+  font-weight: 650;
+}
+
+/* A protected table row's own badge, next to its "Table #N" label. */
+.protected-badge {
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+}
+
+/* A table row's own rules-variant text (absent for a game with no modes
+ * of its own — see TableSummary.variant's own doc). */
+.variant-badge {
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.table-row-seats {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.table-row-seats button.seat {
+  flex-direction: row;
+  align-items: center;
+  padding: 0.45rem 1rem;
+}
+
+/* The occupant id shown inline next to a taken seat's label (see
+ * render.js's `renderTableRow`) — visually secondary to the seat label
+ * itself. `title` (added only once the id was actually truncated) is
+ * what surfaces the untruncated id as a native tooltip on hover. */
+.seat-occupant {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── in-game chrome ──────────────────────────────────────────────────── */
+
+.turnbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+}
+
+.locked {
+  color: var(--green);
+}
+
+/* Wrapping container around whatever a GamePlugin's renderBoard()
+ * returns. A plugin is free to lay out its own grid inside this; the
+ * default here just gives it breathing room. */
+.board {
+  margin-bottom: 1.5rem;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.actions button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  background: var(--panel);
+}
+
+.actions .act {
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.actions .hint {
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.waiting {
+  padding: 0.85rem 1rem;
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  color: var(--accent);
+}
+
+/* ── debrief ─────────────────────────────────────────────────────────── */
+
+.verdict {
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.verdict.win {
+  color: var(--green);
+}
+
+.verdict.lose {
+  color: var(--red);
+}
+
+.verdict.draw {
+  color: var(--accent);
+}
+
+/* ── confirmation modal (app.js's showConfirm(), for data-confirm
+   buttons) ──────────────────────────────────────────────────────────── */
+
+.duel-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(6, 7, 9, 0.6);
+}
+
+.duel-confirm-overlay[hidden] {
+  display: none;
+}
+
+.duel-confirm-box {
+  max-width: 320px;
+  padding: 1.25rem 1.4rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.duel-confirm-msg {
+  margin: 0 0 1.1rem;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.duel-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* ── access-code prompt (app.js's showCodePrompt(), for a click on an
+   open seat of a protected table row) ──────────────────────────────── */
+
+.duel-code-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(6, 7, 9, 0.6);
+}
+
+.duel-code-overlay[hidden] {
+  display: none;
+}
+
+.duel-code-box {
+  max-width: 320px;
+  padding: 1.25rem 1.4rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.duel-code-msg {
+  margin: 0 0 0.9rem;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.duel-code-input {
+  width: 100%;
+  margin-bottom: 1.1rem;
+}
+
+.duel-code-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* The leaderboard: a dedicated full-page overlay (render.ts's
+ * `renderLeaderboard` renders the ranked rows into `#leaderboard-body`;
+ * the header bar — title, "back" button — is each example's own static
+ * markup, styled here since it's the same shape for every game). Covers
+ * the whole viewport while shown, so a live status push updating
+ * `#screen` underneath it can never clobber it, the way a small inline
+ * panel sitting alongside `#screen` would risk. */
+#leaderboard-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 1.75rem 1.25rem 3rem;
+}
+
+#leaderboard-panel[hidden] {
+  display: none;
+}
+
+.leaderboard-header {
+  max-width: 860px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.leaderboard-header h2 {
+  flex: 1;
+  /* Overrides the generic `h2 { margin: 0 0 1rem }` above — with
+   * `align-items: center`, flex centers a child's MARGIN box, not its
+   * text; a bottom-only margin left in place pulls the visible text
+   * off-center against `#leaderboard-back`, which has none. */
+  margin: 0;
+}
+
+.leaderboard-list {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* Ranked leaderboard rows (render.ts's `renderLeaderboard`). Mirrors
+ * `.table-row`'s card look so it reads as the same visual family as the
+ * lobby's own table list. */
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  margin-bottom: 0.4rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+/* The caller's own row (`renderLeaderboard`'s own `yourSid` option) —
+ * picked out with the same gold the trophy toggle itself uses, not just
+ * the "You" badge alone, so it still reads at a glance in a long list. */
+.leaderboard-row.you {
+  border-color: var(--accent);
+  background: #23200f;
+}
+
+.leaderboard-rank {
+  min-width: 1.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  text-align: right;
+}
+
+.leaderboard-player {
+  flex: 1;
+  min-width: 0; /* lets a flex child actually shrink below its content's own width */
+  font-family: monospace;
+  white-space: nowrap; /* required for text-overflow: ellipsis to do anything at all */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-you-badge {
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #17130a;
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+}
+
+/* Marks a canister-seated player's own row (render.js's
+ * `isCanisterPlayer`/`renderLeaderboard`) — sits inside
+ * `.leaderboard-player`, right before its (prefix-stripped) principal
+ * text, same row position a human's own id starts at. */
+.leaderboard-bot-icon {
+  margin-right: 0.3rem;
+}
+
+.leaderboard-score {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* The header's own trophy toggle — icon-only (no "Leaderboard" label),
+ * so it needs a touch more font-size than a text button to read clearly
+ * at a glance. Sits first in `.session`, before the player id, per its
+ * own markup order in each example's index.html; `margin-right: auto`
+ * keeps it left while the player id/logout cluster sits right. */
+#leaderboard-toggle {
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 0.4rem 0.6rem;
+  margin-right: auto;
+}
+
+
+/* The bot challenge dialog: a full-page overlay (render.ts's
+ * `renderBotList`/`renderSeatChoice` render into `#bot-challenge-body`;
+ * the header bar is each example's own static markup, styled here since
+ * it's the same shape for every game) — same positioning as
+ * `#leaderboard-panel` above, for the same reason (covers the whole
+ * viewport while shown, so a live status push updating `#screen`
+ * underneath it can never clobber it). Opened either from a bot's own row
+ * in the leaderboard panel above (`renderLeaderboard`'s own Challenge
+ * button) or from `#bot-add-panel`'s trigger below (bots.js). */
+#bot-challenge-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 1.75rem 1.25rem 3rem;
+}
+
+#bot-challenge-panel[hidden] {
+  display: none;
+}
+
+.bot-challenge-header {
+  max-width: 860px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bot-challenge-header h2 {
+  flex: 1;
+  margin: 0;
+}
+
+.bot-challenge-body {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* A bot's own "Challenge" button — on a `renderLeaderboard` row (sits
+ * after `.leaderboard-score`) or a `renderBotList` row (this dialog's own
+ * list). Small and gold-accented, so it reads as an action distinct from
+ * the row's own data. */
+.leaderboard-challenge {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* "Add Bot" under the waiting screen (bots.js shows it only there): a
+ * sibling of #screen, aligned with `main`. */
+#bot-add-panel {
+  max-width: 860px;
+  margin: 0.75rem auto 0;
+}
+
+#bot-add-panel[hidden] {
+  display: none;
+}
+
+#bot-add-trigger {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--accent, #d4af37);
+  border-color: var(--accent, #d4af37);
+}
